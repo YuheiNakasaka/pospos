@@ -1,74 +1,26 @@
 import { useState } from 'react'
 import { invoke } from '@tauri-apps/api/tauri'
-import Image from 'next/image'
-import reactLogo from '../assets/react.svg'
-import tauriLogo from '../assets/tauri.svg'
-import nextLogo from '../assets/next.svg'
+import { useDb } from '../components/contexts/db'
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState('')
-  const [name, setName] = useState('')
+  const { db } = useDb()
 
-  async function greet() {
-    setGreetMsg(await invoke('greet', { name }))
+  async function select() {
+    console.log('db: ', db)
+    const result = await db.select('SELECT * FROM clients LIMIT 1')
+    console.log(result)
   }
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div className="row">
-        <span className="logos">
-          <a href="https://nextjs.org" target="_blank" rel="noreferrer">
-            <Image
-              width={144}
-              height={144}
-              src={nextLogo}
-              className="logo next"
-              alt="Next logo"
-            />
-          </a>
-        </span>
-        <span className="logos">
-          <a href="https://tauri.app" target="_blank" rel="noreferrer">
-            <Image
-              width={144}
-              height={144}
-              src={tauriLogo}
-              className="logo tauri"
-              alt="Tauri logo"
-            />
-          </a>
-        </span>
-        <span className="logos">
-          <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-            <Image
-              width={144}
-              height={144}
-              src={reactLogo}
-              className="logo react"
-              alt="React logo"
-            />
-          </a>
-        </span>
-      </div>
-
-      <p>Click on the Tauri, Next, and React logos to learn more.</p>
-
+      <h1>Welcome to Tauri!!</h1>
       <div className="row">
         <div>
-          <input
-            id="greet-input"
-            onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="Enter a name..."
-          />
-          <button type="button" onClick={() => greet()}>
-            Greet
+          <button type="button" onClick={() => select()}>
+            Query
           </button>
         </div>
       </div>
-
-      <p>{greetMsg}</p>
     </div>
   )
 }
