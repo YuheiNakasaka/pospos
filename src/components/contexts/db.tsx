@@ -1,11 +1,4 @@
-import {
-  FC,
-  createContext,
-  useState,
-  useEffect,
-  ReactNode,
-  useContext
-} from 'react'
+import { FC, createContext, ReactNode, useContext } from 'react'
 import Database from 'tauri-plugin-sql-api'
 
 type Props = {
@@ -13,35 +6,33 @@ type Props = {
 }
 
 type DbContextType = {
-  db: Database
+  connectDb: (string) => Promise<Database | null>
 }
 
 type UseDb = {
-  db: Database
+  connectDb: (string) => Promise<Database | null>
 }
 
 const DbContext = createContext<DbContextType | undefined>(undefined)
 
 export const DbProvider: FC<Props> = ({ children }) => {
-  const [db, setDb] = useState<Database>(null)
-  useEffect(() => {
-    const init = async () => {
-      const db = await Database.load(`postgres://postgres:@localhost/db_name`)
-      setDb(db)
-    }
-    init()
-  }, [])
-  return <DbContext.Provider value={{ db }}>{children}</DbContext.Provider>
+  const connectDb = async (url: string) => {
+    const db = await Database.load(url)
+    return db
+  }
+  return (
+    <DbContext.Provider value={{ connectDb }}>{children}</DbContext.Provider>
+  )
 }
 
 export const useDb = (): UseDb => {
   const dbContext = useContext(DbContext)
   if (!dbContext) {
     return {
-      db: null
+      connectDb: async () => null
     }
   }
   return {
-    db: dbContext.db
+    connectDb: dbContext.connectDb
   }
 }
