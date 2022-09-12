@@ -3,19 +3,30 @@ import {
   FormGroup,
   InputGroup,
   NumericInput,
-  Button
+  Button,
+  Toaster,
+  Position,
+  Intent
 } from '@blueprintjs/core'
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useConnectionConfigsMutators } from '../../states/connectionConfigState'
+import {
+  useConnectionDetailMutators,
+  useConnectionDetailState
+} from '../../states/connectionDetailState'
 
 const Content = () => {
+  const connectionDetailState = useConnectionDetailState()
+  const { resetConnectionDetail } = useConnectionDetailMutators()
   const [connectionName, setConnectionName] = useState('')
   const [host, setHost] = useState('')
   const [user, setUser] = useState('')
   const [password, setPassword] = useState('')
   const [database, setDatabase] = useState('')
   const [port, setPort] = useState(5432)
-  const { addConnectionConfig } = useConnectionConfigsMutators()
+  const [connecting, setConnecting] = useState(false)
+  const { updateConnectionConfig, deleteConnectionConfig } =
+    useConnectionConfigsMutators()
   const onChangeConnectionName = (e: FormEvent<HTMLElement>) => {
     setConnectionName((e.target as HTMLInputElement).value)
   }
@@ -38,16 +49,68 @@ const Content = () => {
   ) => {
     setPort(valueAsNumber)
   }
-  const onClickConnect = () => {
-    addConnectionConfig({
-      name: connectionName,
-      host: host,
-      user: user,
-      password: password,
-      database: database,
-      port: port
-    })
+  const onClickUpdate = async () => {
+    setConnecting(true)
+
+    const result = await updateConnectionConfig(
+      {
+        name: connectionName,
+        host: host,
+        user: user,
+        password: password,
+        database: database,
+        port: port
+      },
+      connectionDetailState
+    )
+    if (isEmptyConnectionDetail) {
+      resetLocalState()
+    }
+
+    if (result) {
+      Toaster.create({
+        position: Position.BOTTOM_RIGHT
+      }).show({ message: 'Connection updated', intent: Intent.SUCCESS })
+    } else {
+      Toaster.create({
+        position: Position.BOTTOM_RIGHT
+      }).show({ message: 'Failed to update', intent: Intent.DANGER })
+    }
+    setConnecting(false)
   }
+  const onClickDelete = async () => {
+    setConnecting(true)
+    await deleteConnectionConfig(connectionDetailState)
+    await resetConnectionDetail()
+    setConnecting(false)
+  }
+  const onClickConnect = async () => {
+    setConnecting(true)
+    alert('Connect!')
+    setConnecting(false)
+  }
+  const isEmptyConnectionDetail = connectionDetailState === null
+  const resetLocalState = () => {
+    setConnectionName('')
+    setHost('')
+    setUser('')
+    setPassword('')
+    setDatabase('')
+    setPort(5432)
+  }
+
+  useEffect(() => {
+    if (connectionDetailState) {
+      setConnectionName(connectionDetailState.name)
+      setHost(connectionDetailState.host)
+      setUser(connectionDetailState.user)
+      setPassword(connectionDetailState.password)
+      setDatabase(connectionDetailState.database)
+      setPort(connectionDetailState.port)
+    } else {
+      resetLocalState()
+    }
+  }, [connectionDetailState])
 
   return (
     <div
@@ -95,6 +158,7 @@ const Content = () => {
         </FormGroup>
         <FormGroup
           label="Host"
+          labelInfo="(required)"
           style={{
             width: '100%'
           }}
@@ -107,6 +171,7 @@ const Content = () => {
         </FormGroup>
         <FormGroup
           label="User"
+          labelInfo="(required)"
           style={{
             width: '100%'
           }}
@@ -131,6 +196,7 @@ const Content = () => {
         </FormGroup>
         <FormGroup
           label="Database Name"
+          labelInfo="(required)"
           style={{
             width: '100%'
           }}
@@ -153,7 +219,35 @@ const Content = () => {
             onValueChange={onChangePort}
           />
         </FormGroup>
-        <Button onClick={onClickConnect}>Connect</Button>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%'
+          }}
+        >
+          <div>
+            {!isEmptyConnectionDetail && (
+              <Button
+                onClick={onClickDelete}
+                loading={connecting}
+                intent="danger"
+                style={{ marginRight: '1rem' }}
+                text={'Delete'}
+              />
+            )}
+            <Button
+              onClick={onClickUpdate}
+              loading={connecting}
+              text={!isEmptyConnectionDetail ? 'Update' : 'Save'}
+            />
+          </div>
+          <Button
+            onClick={onClickConnect}
+            loading={connecting}
+            text={'Connect'}
+          />
+        </div>
       </section>
     </div>
   )

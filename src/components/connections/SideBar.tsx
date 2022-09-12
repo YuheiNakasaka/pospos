@@ -1,8 +1,18 @@
-import { Colors, AnchorButton } from '@blueprintjs/core'
+import { Colors, AnchorButton, Button } from '@blueprintjs/core'
+import { ConnectionConfig } from '../../models/ConnectionConfig'
 import { useConnectionConfigsState } from '../../states/connectionConfigState'
+import { useConnectionDetailMutators } from '../../states/connectionDetailState'
 
 const Sidebar = () => {
   const connectionConfigsState = useConnectionConfigsState()
+  const { addConnectionDetail, resetConnectionDetail } =
+    useConnectionDetailMutators()
+  const onClickConnectionConfig = (connectionConfig: ConnectionConfig) => {
+    addConnectionDetail(connectionConfig)
+  }
+  const onClickAdd = () => {
+    resetConnectionDetail()
+  }
   return (
     <div
       style={{
@@ -34,11 +44,20 @@ const Sidebar = () => {
               minimal={true}
               fill={true}
               alignText="left"
-              onClick={() => console.log(connectionConfig)}
-            ></AnchorButton>
+              onClick={() => onClickConnectionConfig(connectionConfig)}
+            />
           </li>
         ))}
       </ul>
+      <div
+        style={{
+          position: 'fixed',
+          left: '1rem',
+          bottom: '1rem'
+        }}
+      >
+        <Button icon="add" text="Add connection" onClick={onClickAdd} />
+      </div>
     </div>
   )
 }
