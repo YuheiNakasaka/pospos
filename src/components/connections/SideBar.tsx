@@ -1,6 +1,8 @@
 import { Colors, AnchorButton } from '@blueprintjs/core'
+import { useConnectionConfigsState } from '../../states/connectionConfigState'
 
 const Sidebar = () => {
+  const connectionConfigsState = useConnectionConfigsState()
   return (
     <div
       style={{
@@ -24,16 +26,18 @@ const Sidebar = () => {
           paddingLeft: 0
         }}
       >
-        <li>
-          <AnchorButton
-            text={'Databases'}
-            icon="database"
-            minimal={true}
-            fill={true}
-            alignText="left"
-            onClick={() => console.log('clicked')}
-          ></AnchorButton>
-        </li>
+        {connectionConfigsState.map((connectionConfig) => (
+          <li>
+            <AnchorButton
+              text={connectionConfig.name}
+              icon="database"
+              minimal={true}
+              fill={true}
+              alignText="left"
+              onClick={() => console.log(connectionConfig)}
+            ></AnchorButton>
+          </li>
+        ))}
       </ul>
     </div>
   )

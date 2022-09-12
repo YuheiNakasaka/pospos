@@ -1,12 +1,24 @@
-import { Colors, FormGroup, InputGroup, Button } from '@blueprintjs/core'
+import {
+  Colors,
+  FormGroup,
+  InputGroup,
+  NumericInput,
+  Button
+} from '@blueprintjs/core'
 import { FormEvent, useState } from 'react'
+import { useConnectionConfigsMutators } from '../../states/connectionConfigState'
 
 const Content = () => {
+  const [connectionName, setConnectionName] = useState('')
   const [host, setHost] = useState('')
   const [user, setUser] = useState('')
   const [password, setPassword] = useState('')
   const [database, setDatabase] = useState('')
-  const [port, setPort] = useState('5432')
+  const [port, setPort] = useState(5432)
+  const { addConnectionConfig } = useConnectionConfigsMutators()
+  const onChangeConnectionName = (e: FormEvent<HTMLElement>) => {
+    setConnectionName((e.target as HTMLInputElement).value)
+  }
   const onChangeHost = (e: FormEvent<HTMLElement>) => {
     setHost((e.target as HTMLInputElement).value)
   }
@@ -19,12 +31,22 @@ const Content = () => {
   const onChangeDatabase = (e: FormEvent<HTMLElement>) => {
     setDatabase((e.target as HTMLInputElement).value)
   }
-  const onChangePort = (e: FormEvent<HTMLElement>) => {
-    setPort((e.target as HTMLInputElement).value)
+  const onChangePort = (
+    valueAsNumber: number,
+    _: string,
+    __: HTMLInputElement
+  ) => {
+    setPort(valueAsNumber)
   }
   const onClickConnect = () => {
-    const url = `postgres://${user}:${password}@${host}/${database}?port=${port}`
-    alert(url)
+    addConnectionConfig({
+      name: connectionName,
+      host: host,
+      user: user,
+      password: password,
+      database: database,
+      port: port
+    })
   }
 
   return (
@@ -58,6 +80,19 @@ const Content = () => {
             Connection Detail
           </h1>
         </div>
+        <FormGroup
+          label="Connection Name"
+          labelInfo="(required)"
+          style={{
+            width: '100%'
+          }}
+        >
+          <InputGroup
+            placeholder="For dev env"
+            value={connectionName}
+            onChange={onChangeConnectionName}
+          />
+        </FormGroup>
         <FormGroup
           label="Host"
           style={{
@@ -112,7 +147,11 @@ const Content = () => {
             width: '100%'
           }}
         >
-          <InputGroup placeholder="5432" value={port} onChange={onChangePort} />
+          <NumericInput
+            placeholder="5432"
+            value={port}
+            onValueChange={onChangePort}
+          />
         </FormGroup>
         <Button onClick={onClickConnect}>Connect</Button>
       </section>
