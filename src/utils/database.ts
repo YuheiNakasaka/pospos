@@ -17,3 +17,15 @@ export const isSameConnectionConfig = (
     x.name === y.name
   )
 }
+
+// This uniqueDbKey is used to identify and manage each database connections.
+export const uniqueDbKey = async (
+  config: ConnectionConfig
+): Promise<string> => {
+  const message = `${config.name}${config.user}:${config.password}${config.host}${config.database}${config.port}`
+  const encoder = new TextEncoder()
+  const data = encoder.encode(JSON.stringify(message))
+  const buf = await crypto.subtle.digest('SHA-256', data)
+  const arr = Array.from(new Uint8Array(buf))
+  return arr.map((b) => b.toString(16).padStart(2, '0')).join('')
+}

@@ -8,16 +8,20 @@ import {
   Position,
   Intent
 } from '@blueprintjs/core'
+import { useRouter } from 'next/router'
 import { FormEvent, useEffect, useState } from 'react'
 import { useConnectionConfigsMutators } from '../../states/connectionConfigState'
 import {
   useConnectionDetailMutators,
   useConnectionDetailState
 } from '../../states/connectionDetailState'
+import { useConnectionRegistryMutators } from '../../states/connectionRegistryState'
 
 const Content = () => {
+  const router = useRouter()
   const connectionDetailState = useConnectionDetailState()
   const { resetConnectionDetail } = useConnectionDetailMutators()
+  const { addConnectionRegistry } = useConnectionRegistryMutators()
   const [connectionName, setConnectionName] = useState('')
   const [host, setHost] = useState('')
   const [user, setUser] = useState('')
@@ -86,7 +90,10 @@ const Content = () => {
   }
   const onClickConnect = async () => {
     setConnecting(true)
-    alert('Connect!')
+    const key = await addConnectionRegistry(connectionDetailState, null)
+    if (key) {
+      await router.replace(`/database/${key}`)
+    }
     setConnecting(false)
   }
   const isEmptyConnectionDetail = connectionDetailState === null

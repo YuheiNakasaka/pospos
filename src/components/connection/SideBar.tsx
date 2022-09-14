@@ -17,7 +17,7 @@ const Sidebar = () => {
     <div
       style={{
         width: '230px',
-        backgroundColor: Colors.LIGHT_GRAY4
+        backgroundColor: Colors.LIGHT_GRAY2
       }}
     >
       <h1
