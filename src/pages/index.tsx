@@ -1,7 +1,7 @@
-import Connections from './connections'
+import ConnectionPage from './connection'
 
 function App() {
-  return <Connections />
+  return <ConnectionPage />
 }
 
 export default App

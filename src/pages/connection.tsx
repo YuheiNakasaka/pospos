@@ -1,8 +1,8 @@
 import { NextPage } from 'next'
-import Sidebar from '../components/connections/SideBar'
-import Content from '../components/connections/Content'
+import Sidebar from '../components/connection/SideBar'
+import Content from '../components/connection/Content'
 
-const Connections: NextPage = () => {
+const ConnectionPage: NextPage = () => {
   return (
     <div
       style={{
@@ -18,4 +18,4 @@ const Connections: NextPage = () => {
   )
 }
 
-export default Connections
+export default ConnectionPage
