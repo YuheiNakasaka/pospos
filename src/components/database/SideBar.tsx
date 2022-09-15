@@ -13,10 +13,10 @@ const Sidebar = () => {
         const key = router.query.key as string
         const connectionSet = connectionRegistryState[key]
         if (connectionSet && connectionSet.session) {
-          const client = await connectionSet.session.select(
-            'SELECT * FROM clients LIMIT 1'
+          const result = await connectionSet.session.select(
+            "SELECT * FROM information_schema.tables  WHERE table_schema='public' AND table_type='BASE TABLE' LIMIT 1"
           )
-          console.log(JSON.stringify(client))
+          console.log(JSON.stringify(result))
         }
       }
     }

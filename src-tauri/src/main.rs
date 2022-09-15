@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use tauri_plugin_sql::TauriSql;
+use pospos::TauriSql;
 
 fn main() {
     tauri::Builder::default()
