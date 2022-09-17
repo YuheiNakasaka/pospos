@@ -1,3 +1,4 @@
+import Database from 'tauri-plugin-sql-api'
 import { ConnectionConfig } from '../models/ConnectionConfig'
 
 export const connectionUrl = (config: ConnectionConfig): string => {
@@ -28,4 +29,19 @@ export const uniqueDbKey = async (
   const buf = await crypto.subtle.digest('SHA-256', data)
   const arr = Array.from(new Uint8Array(buf))
   return arr.map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+export const fetchAllTables = async (
+  session: Database
+): Promise<{ [key: string]: string }[]> => {
+  return await session.select(
+    "SELECT * FROM information_schema.tables  WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name"
+  )
+}
+
+export const fetchRecordsFromTable = async (
+  session: Database,
+  tableName: string
+): Promise<{ [key: string]: string }[]> => {
+  return await session.select(`SELECT * FROM ${tableName} LIMIT 100`)
 }

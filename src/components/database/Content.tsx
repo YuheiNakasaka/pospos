@@ -13,7 +13,8 @@ const Content = () => {
   return (
     <main
       style={{
-        height: '100%',
+        marginTop: '60px',
+        height: 'calc(100% - 60px - 20px)',
         flexGrow: 1,
         backgroundColor: Colors.LIGHT_GRAY5
       }}

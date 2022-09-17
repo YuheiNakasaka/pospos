@@ -11,6 +11,7 @@ use sqlx::{
     migrate::{
         MigrateDatabase, Migration as SqlxMigration, MigrationSource, MigrationType, Migrator,
     },
+    types::chrono::NaiveDateTime,
     Column, Pool, Row, TypeInfo,
 };
 use tauri::{
@@ -262,6 +263,13 @@ async fn select(
                             JsonValue::Array(
                                 n.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
                             )
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "TIMESTAMP" => {
+                        if let Ok(n) = row.try_get::<NaiveDateTime, usize>(i) {
+                            JsonValue::String(n.to_string())
                         } else {
                             JsonValue::Null
                         }
