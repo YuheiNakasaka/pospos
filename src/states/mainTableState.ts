@@ -22,6 +22,7 @@ export const useMainTableMutators = () => {
     async (session: Database, tableName: string) => {
       const column_names = await fetchColumnsFromTable(session, tableName)
       const records = await fetchRecordsFromTable(session, tableName, 1000)
+      console.log(records[0])
       setState({
         tableName: tableName,
         columns: column_names.map((row) => row['column_name']),
@@ -31,20 +32,23 @@ export const useMainTableMutators = () => {
     [setState]
   )
 
-  const reloadMainTable = useCallback(async (session: Database) => {
-    if (!currentState) return
-    const records = await fetchRecordsFromTable(
-      session,
-      currentState.tableName,
-      1000
-    )
-    setState((prev) => {
-      return {
-        ...prev,
-        ...{ records: records }
-      }
-    })
-  }, [])
+  const reloadMainTable = useCallback(
+    async (session: Database) => {
+      if (!currentState) return
+      const records = await fetchRecordsFromTable(
+        session,
+        currentState.tableName,
+        1000
+      )
+      setState((prev) => {
+        return {
+          ...prev,
+          ...{ records: records }
+        }
+      })
+    },
+    [setState, currentState]
+  )
 
   const resetMainTable = useCallback(() => {
     setState(null)

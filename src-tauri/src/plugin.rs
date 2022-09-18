@@ -11,7 +11,7 @@ use sqlx::{
     migrate::{
         MigrateDatabase, Migration as SqlxMigration, MigrationSource, MigrationType, Migrator,
     },
-    types::chrono::NaiveDateTime,
+    types::{chrono::NaiveDateTime, ipnetwork::IpNetwork, Uuid},
     Column, Pool, Row, TypeInfo,
 };
 use tauri::{
@@ -235,6 +235,13 @@ async fn select(
                             JsonValue::Null
                         }
                     }
+                    "VARCHAR[]" => {
+                        if let Ok(s) = row.try_get::<Vec<String>, usize>(i) {
+                            JsonValue::Array(s.into_iter().map(JsonValue::String).collect())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
                     "BOOL" | "BOOLEAN" => {
                         if let Ok(b) = row.try_get(i) {
                             JsonValue::Bool(b)
@@ -245,6 +252,13 @@ async fn select(
                     }
                     "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
                         if let Ok(n) = row.try_get::<i64, usize>(i) {
+                            JsonValue::Number(n.into())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "INT4" => {
+                        if let Ok(n) = row.try_get::<i32, usize>(i) {
                             JsonValue::Number(n.into())
                         } else {
                             JsonValue::Null
@@ -274,7 +288,24 @@ async fn select(
                             JsonValue::Null
                         }
                     }
-                    _ => JsonValue::Null,
+                    "UUID" => {
+                        if let Ok(n) = row.try_get::<Uuid, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "INET" => {
+                        if let Ok(n) = row.try_get::<IpNetwork, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    _ => {
+                        println!("Unimplemented Type: {:?}", info.name());
+                        JsonValue::Null
+                    }
                 }
             };
             value.insert(column.name().to_string(), v);

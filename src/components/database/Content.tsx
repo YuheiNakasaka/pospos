@@ -71,10 +71,14 @@ const Content = () => {
                 <ColumnHeaderCell2 name={columnName} />
               )}
               cellRenderer={(rowIndex: number, _: number) => {
-                const value = records[rowIndex][columnName]
+                let value = records[rowIndex][columnName]
+                // NOTE: Array型だるい...
+                if (typeof value === 'object' && Array.isArray(value)) {
+                  value = `{${value.join(',')}}`
+                }
                 return (
                   <EditableCell2
-                    value={value !== null ? `${value}` : ''}
+                    value={value !== null ? `${value}` : null}
                     onConfirm={(newValue) =>
                       onConfirmUpdateColumn(columnName, newValue, rowIndex)
                     }

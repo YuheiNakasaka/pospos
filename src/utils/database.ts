@@ -1,4 +1,4 @@
-import Database, { QueryResult } from 'tauri-plugin-sql-api'
+import Database from 'tauri-plugin-sql-api'
 import { ConnectionConfig } from '../models/ConnectionConfig'
 import { MainTableRecord } from '../models/MainTable'
 
@@ -77,16 +77,10 @@ export const updateRecord = async (
   return fetchRecordsFromTable(session, tableName)
 }
 
-const whereClause = (columnName: string, value: any) => {
-  if (value === null) {
-    return `${columnName} IS NULL`
-  } else {
-    return `${columnName} = ${typedValue(value, typeof value)}`
-  }
-}
-
-const typedValue = (value: any, type: string): string | number | boolean => {
-  console.log(value, type)
+const typedValue = (
+  value: any,
+  type: string
+): string | number | boolean | null => {
   switch (type) {
     case 'string':
       return `'${value}'`
@@ -96,8 +90,17 @@ const typedValue = (value: any, type: string): string | number | boolean => {
       return value === true ? true : false
     case 'object':
       if (value === null) return null
+      if (Array.isArray(value)) return `'{${value.join(',')}}'`
       return `'${value}'`
     default:
       return `'${value}'`
+  }
+}
+
+const whereClause = (columnName: string, value: any) => {
+  if (value === null) {
+    return `${columnName} IS NULL`
+  } else {
+    return `${columnName} = ${typedValue(value, typeof value)}`
   }
 }
