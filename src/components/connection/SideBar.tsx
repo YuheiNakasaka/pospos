@@ -36,8 +36,8 @@ const Sidebar = () => {
           paddingLeft: 0
         }}
       >
-        {connectionConfigsState.map((connectionConfig) => (
-          <li>
+        {connectionConfigsState.map((connectionConfig, i) => (
+          <li key={i}>
             <AnchorButton
               text={connectionConfig.name}
               icon="database"

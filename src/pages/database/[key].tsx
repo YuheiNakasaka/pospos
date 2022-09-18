@@ -6,6 +6,7 @@ import Sidebar from '../../components/database/SideBar'
 import Content from '../../components/database/Content'
 import Header from '../../components/database/Header'
 import Footer from '../../components/database/Footer'
+import { RecoilRoot } from 'recoil'
 
 const DatabasePage: NextPage = () => {
   const router = useRouter()
@@ -19,27 +20,29 @@ const DatabasePage: NextPage = () => {
   }, [])
 
   return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column'
-      }}
-    >
-      <Header />
+    <RecoilRoot override={false}>
       <div
         style={{
+          width: '100vw',
+          height: '100vh',
           display: 'flex',
-          flexDirection: 'row',
-          flexGrow: 1
+          flexDirection: 'column'
         }}
       >
-        <Sidebar />
-        <Content />
+        <Header />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            flexGrow: 1
+          }}
+        >
+          <Sidebar />
+          <Content />
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </RecoilRoot>
   )
 }
 
