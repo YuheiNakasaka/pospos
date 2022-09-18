@@ -35,13 +35,23 @@ export const fetchAllTables = async (
   session: Database
 ): Promise<{ [key: string]: string }[]> => {
   return await session.select(
-    "SELECT * FROM information_schema.tables  WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name"
+    "SELECT * FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name"
   )
 }
 
 export const fetchRecordsFromTable = async (
   session: Database,
+  tableName: string,
+  limit = 100
+): Promise<{ [key: string]: string }[]> => {
+  return await session.select(`SELECT * FROM ${tableName} LIMIT ${limit}`)
+}
+
+export const fetchColumnsFromTable = async (
+  session: Database,
   tableName: string
 ): Promise<{ [key: string]: string }[]> => {
-  return await session.select(`SELECT * FROM ${tableName} LIMIT 100`)
+  return await session.select(
+    `SELECT column_name FROM information_schema.columns WHERE table_name = '${tableName}'`
+  )
 }

@@ -3,7 +3,11 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Database from 'tauri-plugin-sql-api'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
-import { fetchAllTables, fetchRecordsFromTable } from '../../utils/database'
+import {
+  fetchAllTables,
+  fetchColumnsFromTable,
+  fetchRecordsFromTable
+} from '../../utils/database'
 
 const Sidebar = () => {
   const router = useRouter()
@@ -63,7 +67,20 @@ const Sidebar = () => {
               onClick={async () => {
                 if (session) {
                   // TODO: querying test
-                  const records = await fetchRecordsFromTable(session, table)
+                  const column_names = await fetchColumnsFromTable(
+                    session,
+                    table
+                  )
+                  const records = await fetchRecordsFromTable(
+                    session,
+                    table,
+                    10
+                  )
+                  console.log(
+                    JSON.stringify(
+                      column_names.map((row) => row['column_name'])
+                    )
+                  )
                   console.log(JSON.stringify(records))
                 }
               }}
