@@ -1,14 +1,10 @@
-import { Colors, AnchorButton, Button } from '@blueprintjs/core'
+import { Colors, AnchorButton } from '@blueprintjs/core'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Database from 'tauri-plugin-sql-api'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import { useMainTableMutators } from '../../states/mainTableState'
-import {
-  fetchAllTables,
-  fetchColumnsFromTable,
-  fetchRecordsFromTable
-} from '../../utils/database'
+import { fetchAllTables } from '../../utils/database'
 
 const Sidebar = () => {
   const router = useRouter()
@@ -19,13 +15,7 @@ const Sidebar = () => {
 
   const onClickSelectTable = async (tableName: string) => {
     if (session) {
-      const column_names = await fetchColumnsFromTable(session, tableName)
-      const records = await fetchRecordsFromTable(session, tableName, 100)
-      addMainTable({
-        tableName: tableName,
-        columns: column_names.map((row) => row['column_name']),
-        records: records
-      })
+      addMainTable(session, tableName)
     }
   }
 
@@ -51,7 +41,7 @@ const Sidebar = () => {
       style={{
         marginTop: '60px',
         width: '230px',
-        height: 'calc(100vh - 60px - 20px)',
+        height: 'calc(100vh - 60px)',
         overflow: 'scroll',
         backgroundColor: Colors.LIGHT_GRAY2
       }}

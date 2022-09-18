@@ -11,6 +11,7 @@ import { MainTableColumns, MainTableRecords } from '../../models/MainTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import { useMainTableState } from '../../states/mainTableState'
 import { updateRecord } from '../../utils/database'
+import Footer from './Footer'
 
 const Content = () => {
   const router = useRouter()
@@ -47,42 +48,45 @@ const Content = () => {
   }, [mainTableState])
 
   return (
-    <main
-      style={{
-        marginTop: '60px',
-        width: 'calc(100% - 230px)',
-        height: 'calc(100vh - 60px - 20px)',
-        overflow: 'scroll',
-        flexGrow: 1,
-        backgroundColor: Colors.LIGHT_GRAY5
-      }}
-    >
-      <Table2
-        numRows={records.length}
-        enableRowHeader={false}
-        enableMultipleSelection={false}
+    <>
+      <main
+        style={{
+          marginTop: '60px',
+          width: 'calc(100% - 230px)',
+          height: 'calc(100vh - 60px - 30px)',
+          overflow: 'scroll',
+          flexGrow: 1,
+          backgroundColor: Colors.LIGHT_GRAY5
+        }}
       >
-        {columns.map((columnName, index) => (
-          <Column
-            key={index}
-            columnHeaderCellRenderer={(_: number) => (
-              <ColumnHeaderCell2 name={columnName} />
-            )}
-            cellRenderer={(rowIndex: number, _: number) => {
-              const value = records[rowIndex][columnName]
-              return (
-                <EditableCell2
-                  value={value !== null ? value.toString() : ''}
-                  onConfirm={(newValue) =>
-                    onConfirmUpdateColumn(columnName, newValue, rowIndex)
-                  }
-                />
-              )
-            }}
-          />
-        ))}
-      </Table2>
-    </main>
+        <Table2
+          numRows={records.length}
+          enableRowHeader={false}
+          enableMultipleSelection={false}
+        >
+          {columns.map((columnName, index) => (
+            <Column
+              key={index}
+              columnHeaderCellRenderer={(_: number) => (
+                <ColumnHeaderCell2 name={columnName} />
+              )}
+              cellRenderer={(rowIndex: number, _: number) => {
+                const value = records[rowIndex][columnName]
+                return (
+                  <EditableCell2
+                    value={value !== null ? `${value}` : ''}
+                    onConfirm={(newValue) =>
+                      onConfirmUpdateColumn(columnName, newValue, rowIndex)
+                    }
+                  />
+                )
+              }}
+            />
+          ))}
+        </Table2>
+        <Footer />
+      </main>
+    </>
   )
 }
 

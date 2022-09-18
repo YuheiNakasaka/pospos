@@ -5,7 +5,6 @@ import { useConnectionRegistryMutators } from '../../states/connectionRegistrySt
 import Sidebar from '../../components/database/SideBar'
 import Content from '../../components/database/Content'
 import Header from '../../components/database/Header'
-import Footer from '../../components/database/Footer'
 import { RecoilRoot } from 'recoil'
 
 const DatabasePage: NextPage = () => {
@@ -40,7 +39,6 @@ const DatabasePage: NextPage = () => {
           <Sidebar />
           <Content />
         </div>
-        <Footer />
       </div>
     </RecoilRoot>
   )
