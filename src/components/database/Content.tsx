@@ -3,17 +3,41 @@ import {
   Column,
   ColumnHeaderCell2,
   EditableCell2,
-  EditableName,
   Table2
 } from '@blueprintjs/table'
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { MainTableColumns, MainTableRecords } from '../../models/MainTable'
+import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import { useMainTableState } from '../../states/mainTableState'
+import { updateRecord } from '../../utils/database'
 
 const Content = () => {
+  const router = useRouter()
+  const connectionRegistryState = useConnectionRegistryState()
   const mainTableState = useMainTableState()
   const [columns, setColumns] = useState<MainTableColumns>([])
   const [records, setRecords] = useState<MainTableRecords>([])
+
+  const onConfirmUpdateColumn = async (columnName, newValue, rowIndex) => {
+    if (router.query.key) {
+      const key = router.query.key as string
+      if (connectionRegistryState) {
+        const connectionSet = connectionRegistryState[key]
+        if (connectionSet && connectionSet.session) {
+          const updatedRecords = await updateRecord(
+            connectionSet.session,
+            mainTableState.tableName,
+            columnName,
+            newValue,
+            typeof records[rowIndex][columnName],
+            records[rowIndex]
+          )
+          setRecords(updatedRecords)
+        }
+      }
+    }
+  }
 
   useEffect(() => {
     if (mainTableState) {
@@ -33,29 +57,31 @@ const Content = () => {
         backgroundColor: Colors.LIGHT_GRAY5
       }}
     >
-      {records.length > 0 && (
-        <Table2
-          numRows={records.length}
-          enableRowHeader={false}
-          enableMultipleSelection={false}
-        >
-          {columns.map((columnName, index) => (
-            <Column
-              key={index}
-              cellRenderer={(rowIndex: number, columnIndex: number) => {
-                const value = records[rowIndex][columnName]
-                return <EditableCell2 value={value ? value.toString() : ''} />
-              }}
-              columnHeaderCellRenderer={(columnIndex: number) => (
-                <ColumnHeaderCell2
-                  name={columnName}
-                  nameRenderer={(name: string) => <EditableName name={name} />}
+      <Table2
+        numRows={records.length}
+        enableRowHeader={false}
+        enableMultipleSelection={false}
+      >
+        {columns.map((columnName, index) => (
+          <Column
+            key={index}
+            columnHeaderCellRenderer={(_: number) => (
+              <ColumnHeaderCell2 name={columnName} />
+            )}
+            cellRenderer={(rowIndex: number, _: number) => {
+              const value = records[rowIndex][columnName]
+              return (
+                <EditableCell2
+                  value={value !== null ? value.toString() : ''}
+                  onConfirm={(newValue) =>
+                    onConfirmUpdateColumn(columnName, newValue, rowIndex)
+                  }
                 />
-              )}
-            />
-          ))}
-        </Table2>
-      )}
+              )
+            }}
+          />
+        ))}
+      </Table2>
     </main>
   )
 }

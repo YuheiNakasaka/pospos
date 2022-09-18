@@ -22,6 +22,7 @@ const Sidebar = () => {
       const column_names = await fetchColumnsFromTable(session, tableName)
       const records = await fetchRecordsFromTable(session, tableName, 100)
       addMainTable({
+        tableName: tableName,
         columns: column_names.map((row) => row['column_name']),
         records: records
       })
