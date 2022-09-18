@@ -20,7 +20,7 @@ const Sidebar = () => {
   const onClickSelectTable = async (tableName: string) => {
     if (session) {
       const column_names = await fetchColumnsFromTable(session, tableName)
-      const records = await fetchRecordsFromTable(session, tableName, 10)
+      const records = await fetchRecordsFromTable(session, tableName, 100)
       addMainTable({
         columns: column_names.map((row) => row['column_name']),
         records: records
@@ -50,8 +50,8 @@ const Sidebar = () => {
       style={{
         marginTop: '60px',
         width: '230px',
-        height: 'calc(100% - 60px - 20px)',
-        overflowX: 'scroll',
+        height: 'calc(100vh - 60px - 20px)',
+        overflow: 'scroll',
         backgroundColor: Colors.LIGHT_GRAY2
       }}
     >

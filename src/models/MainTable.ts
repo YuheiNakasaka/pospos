@@ -1,8 +1,8 @@
-export type Columns = string[]
+export type MainTableColumns = string[]
 
-export type Records = { [key: string]: string }[]
+export type MainTableRecords = { [key: string]: string }[]
 
 export type MainTable = {
-  columns: Columns
-  records: Records
+  columns: MainTableColumns
+  records: MainTableRecords
 }
