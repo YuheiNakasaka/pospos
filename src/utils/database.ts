@@ -3,8 +3,11 @@ import { ConnectionConfig } from '../models/ConnectionConfig'
 import { MainTableRecord } from '../models/MainTable'
 import { jsValueToSqlValidValue } from './valueConverter'
 
-export const connectionUrl = (config: ConnectionConfig): string => {
-  return `postgres://${config.user}:${config.password}@${config.host}/${config.database}?port=${config.port}`
+export const connectionUrl = (
+  config: ConnectionConfig,
+  schema = 'public'
+): string => {
+  return `postgres://${config.user}:${config.password}@${config.host}/${config.database}?port=${config.port}&schema=${schema}`
 }
 
 export const isSameConnectionConfig = (
@@ -34,30 +37,41 @@ export const uniqueDbKey = async (
 }
 
 export const fetchAllTables = async (
+  session: Database,
+  tableSchema: string
+): Promise<{ [key: string]: string }[]> => {
+  return await session.select(
+    `SELECT * FROM information_schema.tables WHERE table_schema='${tableSchema}' AND table_type='BASE TABLE' ORDER BY table_name`
+  )
+}
+
+export const fetchAllSchemas = async (
   session: Database
 ): Promise<{ [key: string]: string }[]> => {
   return await session.select(
-    "SELECT * FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name"
+    `SELECT schema_name FROM information_schema.schemata`
   )
 }
 
 export const fetchRecordsFromTable = async (
   session: Database,
   tableName: string,
+  tableSchema: string,
   limit = 100,
   offset = 0
 ): Promise<{ [key: string]: string }[]> => {
   return await session.select(
-    `SELECT * FROM ${tableName} LIMIT ${limit} OFFSET ${offset}`
+    `SELECT * FROM ${tableSchema}.${tableName} LIMIT ${limit} OFFSET ${offset}`
   )
 }
 
 export const fetchRecordCountFromTable = async (
   session: Database,
-  tableName: string
+  tableName: string,
+  tableSchema: string
 ): Promise<number> => {
   const record: { [key: string]: string }[] = await session.select(
-    `SELECT count(*) as count FROM ${tableName}`
+    `SELECT count(*) as count FROM ${tableSchema}.${tableName}`
   )
   return Number(record[0]['count'])
 }
@@ -74,6 +88,7 @@ export const fetchColumnsFromTable = async (
 export const updateRecord = async (
   session: Database,
   tableName: string,
+  tableSchema: string,
   key: string,
   value: any,
   type: string,
@@ -83,12 +98,12 @@ export const updateRecord = async (
     .map((k) => whereClause(k, record[k]))
     .join(' AND ')
   await session.execute(
-    `UPDATE ${tableName} SET ${key} = ${jsValueToSqlValidValue(
+    `UPDATE ${tableSchema}.${tableName} SET ${key} = ${jsValueToSqlValidValue(
       value,
       type
     )} WHERE ${whereClauses}`
   )
-  return fetchRecordsFromTable(session, tableName)
+  return fetchRecordsFromTable(session, tableName, tableSchema)
 }
 
 const whereClause = (columnName: string, value: any) => {

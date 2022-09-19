@@ -4,15 +4,20 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Database from 'tauri-plugin-sql-api'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
-import { useMainTableMutators } from '../../states/mainTableState'
+import {
+  useMainTableMutators,
+  useMainTableState
+} from '../../states/mainTableState'
 import { fetchAllTables } from '../../utils/database'
 
 const Sidebar = () => {
   const router = useRouter()
+  const mainTableState = useMainTableState()
   const connectionRegistryState = useConnectionRegistryState()
   const { addMainTable } = useMainTableMutators()
   const [tables, setTables] = useState<string[]>([])
   const [session, setSession] = useState<Database | null>(null)
+  const [tableSchema, setTableSchema] = useState<string>('public')
 
   const onClickSelectTable = async (tableName: string) => {
     if (router.query.key) {
@@ -23,7 +28,7 @@ const Sidebar = () => {
           await invoke('title_updater', {
             title: `${connectionSet.config.host}/${connectionSet.config.database}/${tableName}`
           })
-          addMainTable(session, tableName)
+          addMainTable(session, tableName, tableSchema)
         }
       }
     }
@@ -37,14 +42,18 @@ const Sidebar = () => {
           const connectionSet = connectionRegistryState[key]
           if (connectionSet && connectionSet.session) {
             setSession(connectionSet.session)
-            const results = await fetchAllTables(connectionSet.session)
+            setTableSchema(mainTableState.tableSchema)
+            const results = await fetchAllTables(
+              connectionSet.session,
+              mainTableState.tableSchema
+            )
             setTables(results.map((row) => row.table_name))
           }
         }
       }
     }
     query()
-  }, [connectionRegistryState])
+  }, [connectionRegistryState, mainTableState.tableSchema])
 
   return (
     <aside

@@ -10,6 +10,7 @@ export enum MainTableStatus {
 }
 
 export type MainTable = {
+  tableSchema: string
   tableName: string
   columns: MainTableColumns
   records: MainTableRecords

@@ -44,6 +44,7 @@ const Content = () => {
           const updatedRecords = await updateRecord(
             connectionSet.session,
             mainTableState.tableName,
+            mainTableState.tableSchema,
             columnName,
             newValue,
             typeof records[rowIndex][columnName],
@@ -57,11 +58,13 @@ const Content = () => {
   }
 
   useEffect(() => {
-    if (mainTableState) {
-      if (mainTableState.records.length !== 0) {
-        setColumns(mainTableState.columns)
-        setRecords(mainTableState.records)
-      }
+    if (
+      mainTableState &&
+      mainTableState.records &&
+      mainTableState.records.length !== 0
+    ) {
+      setColumns(mainTableState.columns)
+      setRecords(mainTableState.records)
     }
   }, [mainTableState])
 
