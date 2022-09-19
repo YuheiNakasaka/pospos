@@ -1,4 +1,5 @@
 import { Colors, AnchorButton } from '@blueprintjs/core'
+import { invoke } from '@tauri-apps/api'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Database from 'tauri-plugin-sql-api'
@@ -14,8 +15,17 @@ const Sidebar = () => {
   const [session, setSession] = useState<Database | null>(null)
 
   const onClickSelectTable = async (tableName: string) => {
-    if (session) {
-      addMainTable(session, tableName)
+    if (router.query.key) {
+      const key = router.query.key as string
+      if (connectionRegistryState) {
+        const connectionSet = connectionRegistryState[key]
+        if (connectionSet && connectionSet.session) {
+          await invoke('title_updater', {
+            title: `${connectionSet.config.host}/${connectionSet.config.database}/${tableName}`
+          })
+          addMainTable(session, tableName)
+        }
+      }
     }
   }
 
