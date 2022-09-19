@@ -1,13 +1,17 @@
 import { Colors, AnchorButton, NumericInput, Button } from '@blueprintjs/core'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MainTableStatus } from '../../models/MainTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
-import { useMainTableMutators } from '../../states/mainTableState'
+import {
+  useMainTableMutators,
+  useMainTableState
+} from '../../states/mainTableState'
 
 const Footer = () => {
   const router = useRouter()
   const connectionRegistryState = useConnectionRegistryState()
+  const mainTableState = useMainTableState()
   const { reloadMainTable, updateMainTableStatus } = useMainTableMutators()
   const [limit, setLimit] = useState<number>(1000)
   const [offset, setOffset] = useState<number>(0)
@@ -33,6 +37,11 @@ const Footer = () => {
   ) => {
     setLimit(valueAsNumber)
   }
+
+  useEffect(() => {
+    setLimit(1000)
+    setOffset(0)
+  }, [mainTableState.tableName])
 
   return (
     <footer
@@ -65,6 +74,16 @@ const Footer = () => {
         />
         <div
           style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: Colors.GRAY1
+          }}
+        >
+          {offset} ~ {offset + limit} rows from {mainTableState.allRecordsCount}
+        </div>
+        <div
+          style={{
             display: 'flex'
           }}
         >
@@ -93,10 +112,13 @@ const Footer = () => {
           <Button
             icon="caret-right"
             style={{ marginLeft: '2px' }}
+            disabled={mainTableState.allRecordsCount < offset}
             onClick={() => {
               const diff = offset + limit
-              setOffset(diff)
-              onClickReloadButton(limit, diff)
+              if (mainTableState.allRecordsCount >= offset) {
+                setOffset(diff)
+                onClickReloadButton(limit, diff)
+              }
             }}
           />
         </div>

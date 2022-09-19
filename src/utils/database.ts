@@ -52,6 +52,16 @@ export const fetchRecordsFromTable = async (
   )
 }
 
+export const fetchRecordCountFromTable = async (
+  session: Database,
+  tableName: string
+): Promise<number> => {
+  const record: { [key: string]: string }[] = await session.select(
+    `SELECT count(*) as count FROM ${tableName}`
+  )
+  return Number(record[0]['count'])
+}
+
 export const fetchColumnsFromTable = async (
   session: Database,
   tableName: string

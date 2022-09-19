@@ -14,4 +14,5 @@ export type MainTable = {
   columns: MainTableColumns
   records: MainTableRecords
   status: MainTableStatus
+  allRecordsCount: number
 }
