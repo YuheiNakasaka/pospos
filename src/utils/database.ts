@@ -1,6 +1,7 @@
 import Database from 'tauri-plugin-sql-api'
 import { ConnectionConfig } from '../models/ConnectionConfig'
 import { MainTableRecord } from '../models/MainTable'
+import { jsValueToSqlValidValue } from './valueConverter'
 
 export const connectionUrl = (config: ConnectionConfig): string => {
   return `postgres://${config.user}:${config.password}@${config.host}/${config.database}?port=${config.port}`
@@ -69,7 +70,7 @@ export const updateRecord = async (
     .map((k) => whereClause(k, record[k]))
     .join(' AND ')
   await session.execute(
-    `UPDATE ${tableName} SET ${key} = ${typedValue(
+    `UPDATE ${tableName} SET ${key} = ${jsValueToSqlValidValue(
       value,
       type
     )} WHERE ${whereClauses}`
@@ -77,30 +78,10 @@ export const updateRecord = async (
   return fetchRecordsFromTable(session, tableName)
 }
 
-const typedValue = (
-  value: any,
-  type: string
-): string | number | boolean | null => {
-  switch (type) {
-    case 'string':
-      return `'${value}'`
-    case 'number':
-      return Number(value)
-    case 'boolean':
-      return value === true ? true : false
-    case 'object':
-      if (value === null) return null
-      if (Array.isArray(value)) return `'{${value.join(',')}}'`
-      return `'${value}'`
-    default:
-      return `'${value}'`
-  }
-}
-
 const whereClause = (columnName: string, value: any) => {
   if (value === null) {
     return `${columnName} IS NULL`
   } else {
-    return `${columnName} = ${typedValue(value, typeof value)}`
+    return `${columnName} = ${jsValueToSqlValidValue(value, typeof value)}`
   }
 }

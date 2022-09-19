@@ -11,6 +11,7 @@ import { MainTableColumns, MainTableRecords } from '../../models/MainTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import { useMainTableState } from '../../states/mainTableState'
 import { updateRecord } from '../../utils/database'
+import { sqlValueToJsValidValue } from '../../utils/valueConverter'
 import Footer from './Footer'
 
 const Content = () => {
@@ -71,14 +72,11 @@ const Content = () => {
                 <ColumnHeaderCell2 name={columnName} />
               )}
               cellRenderer={(rowIndex: number, _: number) => {
-                let value = records[rowIndex][columnName]
-                // NOTE: Array型だるい...
-                if (typeof value === 'object' && Array.isArray(value)) {
-                  value = `{${value.join(',')}}`
-                }
                 return (
                   <EditableCell2
-                    value={value !== null ? `${value}` : null}
+                    value={sqlValueToJsValidValue(
+                      records[rowIndex][columnName]
+                    )}
                     onConfirm={(newValue) =>
                       onConfirmUpdateColumn(columnName, newValue, rowIndex)
                     }
