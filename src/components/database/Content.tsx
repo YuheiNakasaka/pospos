@@ -3,7 +3,8 @@ import {
   Column,
   ColumnHeaderCell2,
   EditableCell2,
-  Table2
+  Table2,
+  TableLoadingOption
 } from '@blueprintjs/table'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -20,13 +21,19 @@ const Content = () => {
   const mainTableState = useMainTableState()
   const [columns, setColumns] = useState<MainTableColumns>([])
   const [records, setRecords] = useState<MainTableRecords>([])
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const onConfirmUpdateColumn = async (columnName, newValue, rowIndex) => {
     if (router.query.key) {
       const key = router.query.key as string
       if (connectionRegistryState) {
         const connectionSet = connectionRegistryState[key]
-        if (connectionSet && connectionSet.session) {
+        if (
+          connectionSet &&
+          connectionSet.session &&
+          records[rowIndex][columnName] !== newValue
+        ) {
+          setIsLoading(true)
           const updatedRecords = await updateRecord(
             connectionSet.session,
             mainTableState.tableName,
@@ -36,6 +43,7 @@ const Content = () => {
             records[rowIndex]
           )
           setRecords(updatedRecords)
+          setIsLoading(false)
         }
       }
     }
@@ -64,6 +72,7 @@ const Content = () => {
           numRows={records.length}
           enableRowHeader={false}
           enableMultipleSelection={false}
+          loadingOptions={isLoading ? [TableLoadingOption.CELLS] : []}
         >
           {columns.map((columnName, index) => (
             <Column
