@@ -15,4 +15,6 @@ export type MainTable = {
   records: MainTableRecords
   status: MainTableStatus
   allRecordsCount: number
+  offset: number
+  limit: number
 }

@@ -1,6 +1,5 @@
 import { Colors, AnchorButton, NumericInput, Button } from '@blueprintjs/core'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 import { MainTableStatus } from '../../models/MainTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import {
@@ -12,9 +11,12 @@ const Footer = () => {
   const router = useRouter()
   const connectionRegistryState = useConnectionRegistryState()
   const mainTableState = useMainTableState()
-  const { reloadMainTable, updateMainTableStatus } = useMainTableMutators()
-  const [limit, setLimit] = useState<number>(1000)
-  const [offset, setOffset] = useState<number>(0)
+  const {
+    reloadMainTable,
+    updateMainTableStatus,
+    updateMainTableStatusLimit,
+    updateMainTableStatusOffset
+  } = useMainTableMutators()
 
   const onClickReloadButton = async (limit: number, offset: number) => {
     if (router.query.key) {
@@ -35,15 +37,10 @@ const Footer = () => {
     _: string,
     __: HTMLInputElement
   ) => {
-    setLimit(valueAsNumber)
+    updateMainTableStatusLimit(valueAsNumber)
   }
 
-  useEffect(() => {
-    setLimit(1000)
-    setOffset(0)
-  }, [mainTableState.tableName])
-
-  return (
+  return mainTableState ? (
     <footer
       style={{
         position: 'fixed',
@@ -68,7 +65,9 @@ const Footer = () => {
           minimal={true}
           fill={true}
           alignText="left"
-          onClick={() => onClickReloadButton(limit, offset)}
+          onClick={() =>
+            onClickReloadButton(mainTableState.limit, mainTableState.offset)
+          }
           small={true}
           style={{ width: '25px', height: '30px' }}
         />
@@ -80,7 +79,9 @@ const Footer = () => {
             color: Colors.GRAY1
           }}
         >
-          {offset} ~ {offset + limit} rows from {mainTableState.allRecordsCount}
+          {mainTableState.offset} ~{' '}
+          {mainTableState.offset + mainTableState.limit} rows from{' '}
+          {mainTableState.allRecordsCount}
         </div>
         <div
           style={{
@@ -90,12 +91,12 @@ const Footer = () => {
           <Button
             icon="caret-left"
             style={{ marginRight: '2px' }}
-            disabled={offset - limit < 0}
+            disabled={mainTableState.offset - mainTableState.limit < 0}
             onClick={() => {
-              const diff = offset - limit
+              const diff = mainTableState.offset - mainTableState.limit
               if (diff >= 0) {
-                setOffset(diff)
-                onClickReloadButton(limit, diff)
+                updateMainTableStatusOffset(diff)
+                onClickReloadButton(mainTableState.limit, diff)
               }
             }}
           />
@@ -112,18 +113,24 @@ const Footer = () => {
           <Button
             icon="caret-right"
             style={{ marginLeft: '2px' }}
-            disabled={mainTableState.allRecordsCount < offset}
+            disabled={
+              mainTableState.allRecordsCount < mainTableState.offset ||
+              (mainTableState.offset === 0 &&
+                mainTableState.allRecordsCount <= mainTableState.limit)
+            }
             onClick={() => {
-              const diff = offset + limit
-              if (mainTableState.allRecordsCount >= offset) {
-                setOffset(diff)
-                onClickReloadButton(limit, diff)
+              const diff = mainTableState.offset + mainTableState.limit
+              if (mainTableState.allRecordsCount >= mainTableState.offset) {
+                updateMainTableStatusOffset(diff)
+                onClickReloadButton(mainTableState.limit, diff)
               }
             }}
           />
         </div>
       </div>
     </footer>
+  ) : (
+    <></>
   )
 }
 

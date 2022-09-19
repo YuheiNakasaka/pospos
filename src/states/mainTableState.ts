@@ -32,7 +32,9 @@ export const useMainTableMutators = () => {
         columns: column_names.map((row) => row['column_name']),
         records: records,
         status: MainTableStatus.LOADED,
-        allRecordsCount: count
+        allRecordsCount: count,
+        offset: 0,
+        limit: 1000
       })
     },
     [setState]
@@ -73,10 +75,30 @@ export const useMainTableMutators = () => {
     [setState]
   )
 
+  const updateMainTableStatusLimit = useCallback(
+    (limit: number) => {
+      setState((prev) => {
+        return { ...prev, ...{ limit: limit } }
+      })
+    },
+    [setState]
+  )
+
+  const updateMainTableStatusOffset = useCallback(
+    (offset: number) => {
+      setState((prev) => {
+        return { ...prev, ...{ offset: offset } }
+      })
+    },
+    [setState]
+  )
+
   return {
     addMainTable,
     resetMainTable,
     reloadMainTable,
-    updateMainTableStatus
+    updateMainTableStatus,
+    updateMainTableStatusLimit,
+    updateMainTableStatusOffset
   }
 }
