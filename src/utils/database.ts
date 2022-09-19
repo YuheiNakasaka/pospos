@@ -44,9 +44,12 @@ export const fetchAllTables = async (
 export const fetchRecordsFromTable = async (
   session: Database,
   tableName: string,
-  limit = 100
+  limit = 100,
+  offset = 0
 ): Promise<{ [key: string]: string }[]> => {
-  return await session.select(`SELECT * FROM ${tableName} LIMIT ${limit}`)
+  return await session.select(
+    `SELECT * FROM ${tableName} LIMIT ${limit} OFFSET ${offset}`
+  )
 }
 
 export const fetchColumnsFromTable = async (

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { atom, useRecoilValue, useSetRecoilState } from 'recoil'
 import Database from 'tauri-plugin-sql-api'
-import { MainTable } from '../models/MainTable'
+import { MainTable, MainTableStatus } from '../models/MainTable'
 import { fetchColumnsFromTable, fetchRecordsFromTable } from '../utils/database'
 import * as globalStateKey from './globalStateKey'
 
@@ -26,24 +26,26 @@ export const useMainTableMutators = () => {
       setState({
         tableName: tableName,
         columns: column_names.map((row) => row['column_name']),
-        records: records
+        records: records,
+        status: MainTableStatus.LOADED
       })
     },
     [setState]
   )
 
   const reloadMainTable = useCallback(
-    async (session: Database) => {
+    async (session: Database, limit: number, offset: number) => {
       if (!currentState) return
       const records = await fetchRecordsFromTable(
         session,
         currentState.tableName,
-        1000
+        limit,
+        offset
       )
       setState((prev) => {
         return {
           ...prev,
-          ...{ records: records }
+          ...{ records: records, status: MainTableStatus.LOADED }
         }
       })
     },
@@ -54,9 +56,22 @@ export const useMainTableMutators = () => {
     setState(null)
   }, [setState])
 
+  const updateMainTableStatus = useCallback(
+    (status: MainTableStatus) => {
+      setState((prev) => {
+        return {
+          ...prev,
+          ...{ status: status }
+        }
+      })
+    },
+    [setState]
+  )
+
   return {
     addMainTable,
     resetMainTable,
-    reloadMainTable
+    reloadMainTable,
+    updateMainTableStatus
   }
 }

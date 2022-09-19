@@ -8,9 +8,16 @@ import {
 } from '@blueprintjs/table'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { MainTableColumns, MainTableRecords } from '../../models/MainTable'
+import {
+  MainTableColumns,
+  MainTableRecords,
+  MainTableStatus
+} from '../../models/MainTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
-import { useMainTableState } from '../../states/mainTableState'
+import {
+  useMainTableMutators,
+  useMainTableState
+} from '../../states/mainTableState'
 import { updateRecord } from '../../utils/database'
 import { sqlValueToJsValidValue } from '../../utils/valueConverter'
 import Footer from './Footer'
@@ -19,9 +26,9 @@ const Content = () => {
   const router = useRouter()
   const connectionRegistryState = useConnectionRegistryState()
   const mainTableState = useMainTableState()
+  const { updateMainTableStatus } = useMainTableMutators()
   const [columns, setColumns] = useState<MainTableColumns>([])
   const [records, setRecords] = useState<MainTableRecords>([])
-  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const onConfirmUpdateColumn = async (columnName, newValue, rowIndex) => {
     if (router.query.key) {
@@ -33,7 +40,7 @@ const Content = () => {
           connectionSet.session &&
           records[rowIndex][columnName] !== newValue
         ) {
-          setIsLoading(true)
+          updateMainTableStatus(MainTableStatus.LOADING)
           const updatedRecords = await updateRecord(
             connectionSet.session,
             mainTableState.tableName,
@@ -43,7 +50,7 @@ const Content = () => {
             records[rowIndex]
           )
           setRecords(updatedRecords)
-          setIsLoading(false)
+          updateMainTableStatus(MainTableStatus.LOADED)
         }
       }
     }
@@ -51,8 +58,10 @@ const Content = () => {
 
   useEffect(() => {
     if (mainTableState) {
-      setColumns(mainTableState.columns)
-      setRecords(mainTableState.records)
+      if (mainTableState.records.length !== 0) {
+        setColumns(mainTableState.columns)
+        setRecords(mainTableState.records)
+      }
     }
   }, [mainTableState])
 
@@ -62,7 +71,7 @@ const Content = () => {
         style={{
           marginTop: '60px',
           width: 'calc(100% - 230px)',
-          height: 'calc(100vh - 60px - 30px)',
+          height: 'calc(100vh - 60px - 40px)',
           overflow: 'scroll',
           flexGrow: 1,
           backgroundColor: Colors.LIGHT_GRAY5
@@ -72,7 +81,11 @@ const Content = () => {
           numRows={records.length}
           enableRowHeader={false}
           enableMultipleSelection={false}
-          loadingOptions={isLoading ? [TableLoadingOption.CELLS] : []}
+          loadingOptions={
+            mainTableState && mainTableState.status === MainTableStatus.LOADING
+              ? [TableLoadingOption.CELLS]
+              : []
+          }
         >
           {columns.map((columnName, index) => (
             <Column
