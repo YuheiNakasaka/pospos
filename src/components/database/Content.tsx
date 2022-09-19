@@ -7,12 +7,7 @@ import {
   TableLoadingOption
 } from '@blueprintjs/table'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import {
-  MainTableColumns,
-  MainTableRecords,
-  MainTableStatus
-} from '../../models/MainTable'
+import { MainTableStatus } from '../../models/MainTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import {
   useMainTableMutators,
@@ -26,9 +21,7 @@ const Content = () => {
   const router = useRouter()
   const connectionRegistryState = useConnectionRegistryState()
   const mainTableState = useMainTableState()
-  const { updateMainTableStatus } = useMainTableMutators()
-  const [columns, setColumns] = useState<MainTableColumns>([])
-  const [records, setRecords] = useState<MainTableRecords>([])
+  const { updateMainTableStatus, reloadMainTable } = useMainTableMutators()
 
   const onConfirmUpdateColumn = async (columnName, newValue, rowIndex) => {
     if (router.query.key) {
@@ -38,35 +31,28 @@ const Content = () => {
         if (
           connectionSet &&
           connectionSet.session &&
-          records[rowIndex][columnName] !== newValue
+          mainTableState.records[rowIndex][columnName] !== newValue
         ) {
           updateMainTableStatus(MainTableStatus.LOADING)
-          const updatedRecords = await updateRecord(
+          await updateRecord(
             connectionSet.session,
             mainTableState.tableName,
             mainTableState.tableSchema,
             columnName,
             newValue,
-            typeof records[rowIndex][columnName],
-            records[rowIndex]
+            typeof mainTableState.records[rowIndex][columnName],
+            mainTableState.records[rowIndex]
           )
-          setRecords(updatedRecords)
+          await reloadMainTable(
+            connectionSet.session,
+            mainTableState.limit,
+            mainTableState.offset
+          )
           updateMainTableStatus(MainTableStatus.LOADED)
         }
       }
     }
   }
-
-  useEffect(() => {
-    if (
-      mainTableState &&
-      mainTableState.records &&
-      mainTableState.records.length !== 0
-    ) {
-      setColumns(mainTableState.columns)
-      setRecords(mainTableState.records)
-    }
-  }, [mainTableState])
 
   return (
     <>
@@ -81,7 +67,7 @@ const Content = () => {
         }}
       >
         <Table2
-          numRows={records.length}
+          numRows={mainTableState.records.length}
           enableRowHeader={false}
           enableMultipleSelection={false}
           loadingOptions={
@@ -90,7 +76,7 @@ const Content = () => {
               : []
           }
         >
-          {columns.map((columnName, index) => (
+          {mainTableState.columns.map((columnName, index) => (
             <Column
               key={index}
               columnHeaderCellRenderer={(_: number) => (
@@ -100,7 +86,7 @@ const Content = () => {
                 return (
                   <EditableCell2
                     value={sqlValueToJsValidValue(
-                      records[rowIndex][columnName]
+                      mainTableState.records[rowIndex][columnName]
                     )}
                     onConfirm={(newValue) =>
                       onConfirmUpdateColumn(columnName, newValue, rowIndex)

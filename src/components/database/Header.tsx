@@ -10,6 +10,7 @@ import { fetchAllSchemas } from '../../utils/database'
 
 const Header = () => {
   const router = useRouter()
+  const mainTableState = useMainTableState()
   const { updateMainTableSchema } = useMainTableMutators()
   const connectionRegistryState = useConnectionRegistryState()
   const [schemas, setSchemas] = useState<string[]>([])
@@ -43,14 +44,28 @@ const Header = () => {
         right: 0,
         width: '100%',
         height: '60px',
+        display: 'flex',
         backgroundColor: Colors.LIGHT_GRAY4
       }}
     >
-      <HTMLSelect onChange={onChangeSchema}>
-        {schemas.map((schema) => (
-          <option value={schema}>{schema}</option>
-        ))}
-      </HTMLSelect>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          margin: '0 10px'
+        }}
+      >
+        <HTMLSelect onChange={onChangeSchema}>
+          {schemas.map((schema) => (
+            <option
+              value={schema}
+              selected={mainTableState.tableSchema == schema}
+            >
+              {schema}
+            </option>
+          ))}
+        </HTMLSelect>
+      </div>
     </header>
   )
 }
