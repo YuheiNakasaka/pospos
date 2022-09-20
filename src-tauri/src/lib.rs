@@ -27,3 +27,5 @@ mod plugin;
     all(feature = "postgres", not(any(feature = "sqlite", feature = "mysql"))),
 ))]
 pub use plugin::*;
+
+pub mod handler;
