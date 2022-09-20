@@ -13,7 +13,7 @@ export const jsValueToSqlValidValue = (
 ): string | number | boolean | null => {
   switch (type) {
     case 'string':
-      return `'${value}'`
+      return `'${escapeString(value)}'`
     case 'number':
       return Number(value)
     case 'boolean':
@@ -21,8 +21,12 @@ export const jsValueToSqlValidValue = (
     case 'object':
       if (value === null) return null
       if (Array.isArray(value)) return `'{${value.join(',')}}'`
-      return `'${value}'`
+      return `'${escapeString(value)}'`
     default:
-      return `'${value}'`
+      return `'${escapeString(value)}'`
   }
+}
+
+const escapeString = (str: string) => {
+  return str.replace(/'/g, "''")
 }
