@@ -11,7 +11,13 @@ use sqlx::{
     migrate::{
         MigrateDatabase, Migration as SqlxMigration, MigrationSource, MigrationType, Migrator,
     },
-    types::{chrono::NaiveDateTime, ipnetwork::IpNetwork, Uuid},
+    postgres::types::{Oid, PgInterval, PgMoney, PgRange, PgTimeTz},
+    types::{
+        chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, Utc},
+        ipnetwork::IpNetwork,
+        mac_address::MacAddress,
+        BigDecimal, BitVec, Decimal, Uuid,
+    },
     Column, Pool, Row, TypeInfo,
 };
 use tauri::{
@@ -250,6 +256,27 @@ async fn select(
                             JsonValue::Bool(x.to_lowercase() == "true")
                         }
                     }
+                    "\"CHAR\"" => {
+                        if let Ok(n) = row.try_get::<i8, usize>(i) {
+                            JsonValue::Number(n.into())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "SMALLLINT" | "SMALLSERIAL" | "INT2" => {
+                        if let Ok(n) = row.try_get::<i16, usize>(i) {
+                            JsonValue::Number(n.into())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "INT4" | "SERIAL" => {
+                        if let Ok(n) = row.try_get::<i32, usize>(i) {
+                            JsonValue::Number(n.into())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
                     "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
                         if let Ok(n) = row.try_get::<i64, usize>(i) {
                             JsonValue::Number(n.into())
@@ -257,16 +284,30 @@ async fn select(
                             JsonValue::Null
                         }
                     }
-                    "INT4" => {
-                        if let Ok(n) = row.try_get::<i32, usize>(i) {
-                            JsonValue::Number(n.into())
+                    "REAL" | "FLOAT4" => {
+                        if let Ok(n) = row.try_get::<f32, usize>(i) {
+                            JsonValue::from(n)
                         } else {
                             JsonValue::Null
                         }
                     }
-                    "REAL" => {
+                    "DOUBLE" | "PRECISION" | "FLOAT8" => {
                         if let Ok(n) = row.try_get::<f64, usize>(i) {
                             JsonValue::from(n)
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "OID" => {
+                        if let Ok(n) = row.try_get::<Oid, usize>(i) {
+                            JsonValue::Number(n.0.into())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "BYTEA" => {
+                        if let Ok(bytes) = row.try_get::<Vec<u8>, usize>(i) {
+                            JsonValue::String(base64::encode(bytes))
                         } else {
                             JsonValue::Null
                         }
@@ -281,13 +322,6 @@ async fn select(
                             JsonValue::Null
                         }
                     }
-                    "TIMESTAMP" => {
-                        if let Ok(n) = row.try_get::<NaiveDateTime, usize>(i) {
-                            JsonValue::String(n.to_string())
-                        } else {
-                            JsonValue::Null
-                        }
-                    }
                     "UUID" => {
                         if let Ok(n) = row.try_get::<Uuid, usize>(i) {
                             JsonValue::String(n.to_string())
@@ -298,6 +332,158 @@ async fn select(
                     "INET" => {
                         if let Ok(n) = row.try_get::<IpNetwork, usize>(i) {
                             JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "INTERVAL" => {
+                        if let Ok(n) = row.try_get::<PgInterval, usize>(i) {
+                            JsonValue::String(format!(
+                                "{:0>2}:{:0>2}:{:0>2}",
+                                n.months, n.days, n.microseconds
+                            ))
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "INT8RANGE" => {
+                        if let Ok(n) = row.try_get::<PgRange<i64>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "INT4RANGE" => {
+                        if let Ok(n) = row.try_get::<PgRange<i32>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "TSRANGE" => {
+                        if let Ok(n) = row.try_get::<PgRange<NaiveDateTime>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "TSTZRANGE" => {
+                        if let Ok(n) = row.try_get::<PgRange<DateTime<Utc>>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            if let Ok(n) = row.try_get::<PgRange<DateTime<Local>>, usize>(i) {
+                                JsonValue::String(n.to_string())
+                            } else {
+                                JsonValue::Null
+                            }
+                        }
+                    }
+                    "DATERANGE" => {
+                        if let Ok(n) = row.try_get::<PgRange<NaiveDate>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "NUMRANGE" => {
+                        if let Ok(n) = row.try_get::<PgRange<BigDecimal>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            if let Ok(n) = row.try_get::<PgRange<Decimal>, usize>(i) {
+                                JsonValue::String(n.to_string())
+                            } else {
+                                JsonValue::Null
+                            }
+                        }
+                    }
+                    "MONEY" => {
+                        if let Ok(n) = row.try_get::<PgMoney, usize>(i) {
+                            JsonValue::Number(n.0.into())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "NUMERIC" => {
+                        if let Ok(n) = row.try_get::<BigDecimal, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            if let Ok(n) = row.try_get::<Decimal, usize>(i) {
+                                JsonValue::String(n.to_string())
+                            } else {
+                                JsonValue::Null
+                            }
+                        }
+                    }
+                    "TIMESTAMPTZ" => {
+                        if let Ok(n) = row.try_get::<DateTime<Utc>, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            if let Ok(n) = row.try_get::<DateTime<Local>, usize>(i) {
+                                JsonValue::String(n.to_string())
+                            } else {
+                                JsonValue::Null
+                            }
+                        }
+                    }
+                    "TIMESTAMP" => {
+                        if let Ok(n) = row.try_get::<NaiveDateTime, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "DATE" => {
+                        if let Ok(n) = row.try_get::<NaiveDate, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "TIME" => {
+                        if let Ok(n) = row.try_get::<NaiveTime, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "TIMETZ" => {
+                        if let Ok(n) = row.try_get::<PgTimeTz, usize>(i) {
+                            JsonValue::String(n.time.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "MACADDR" => {
+                        if let Ok(n) = row.try_get::<MacAddress, usize>(i) {
+                            JsonValue::String(n.to_string())
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "BIT" | "VARBIT" => {
+                        if let Ok(n) = row.try_get::<BitVec, usize>(i) {
+                            // NOTE: Into hex representation
+                            JsonValue::String(
+                                n.to_bytes()
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(i, val)| {
+                                        if i == 7 {
+                                            format!("{:02x}", val)
+                                        } else {
+                                            format!("{:02x}", val)
+                                        }
+                                    })
+                                    .collect::<Vec<String>>()
+                                    .join(" "),
+                            )
+                        } else {
+                            JsonValue::Null
+                        }
+                    }
+                    "JSON" | "JSONB" => {
+                        if let Ok(n) = row.try_get::<String, usize>(i) {
+                            JsonValue::String(n)
                         } else {
                             JsonValue::Null
                         }
