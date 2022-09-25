@@ -1,7 +1,12 @@
-import { Colors, HTMLSelect } from '@blueprintjs/core'
+import { Colors, HTMLSelect, Tabs, Tab } from '@blueprintjs/core'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { HeaderNavigationType } from '../../models/HeaderNavigation'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
+import {
+  useHeaderNavigationMutators,
+  useHeaderNavigationState
+} from '../../states/headerNavigationState'
 import {
   useMainTableMutators,
   useMainTableState
@@ -11,12 +16,18 @@ import { fetchAllSchemas } from '../../utils/database'
 const Header = () => {
   const router = useRouter()
   const mainTableState = useMainTableState()
+  const headerNavationState = useHeaderNavigationState()
+  const { updateHeaderNavigation } = useHeaderNavigationMutators()
   const { updateMainTableSchema } = useMainTableMutators()
   const connectionRegistryState = useConnectionRegistryState()
   const [schemas, setSchemas] = useState<string[]>([])
 
   const onChangeSchema = async (e) => {
     updateMainTableSchema(e.target.value)
+  }
+
+  const onChangeTab = async (tabId) => {
+    updateHeaderNavigation({ currentIndex: tabId })
   }
 
   useEffect(() => {
@@ -55,7 +66,7 @@ const Header = () => {
           margin: '0 10px'
         }}
       >
-        <HTMLSelect onChange={onChangeSchema}>
+        <HTMLSelect onChange={onChangeSchema} fill={true}>
           {schemas.map((schema) => (
             <option
               value={schema}
@@ -65,6 +76,20 @@ const Header = () => {
             </option>
           ))}
         </HTMLSelect>
+        <div
+          style={{
+            width: '60px'
+          }}
+        ></div>
+        <Tabs
+          animate={false}
+          large={true}
+          onChange={onChangeTab}
+          selectedTabId={headerNavationState.currentIndex}
+        >
+          <Tab id={HeaderNavigationType.content} title="Content" />
+          <Tab id={HeaderNavigationType.query} title="Query" />
+        </Tabs>
       </div>
     </header>
   )

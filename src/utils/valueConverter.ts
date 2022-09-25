@@ -7,6 +7,7 @@ export const sqlValueToJsValidValue = (rawValue: any): any => {
   return `${rawValue}`
 }
 
+// TODO: This is a temporary solution. We don't have a way to convert the all types of the column.
 export const jsValueToSqlValidValue = (
   value: any,
   type: string

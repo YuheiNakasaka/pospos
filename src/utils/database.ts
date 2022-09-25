@@ -1,6 +1,7 @@
-import Database from 'tauri-plugin-sql-api'
+import Database, { QueryResult } from 'tauri-plugin-sql-api'
 import { ConnectionConfig } from '../models/ConnectionConfig'
 import { MainTableRecord } from '../models/MainTable'
+import { Query, QueryType } from '../models/Query'
 import { jsValueToSqlValidValue } from './valueConverter'
 
 export const connectionUrl = (
@@ -104,6 +105,31 @@ export const updateRecord = async (
     )} WHERE ${whereClauses}`
   )
   return fetchRecordsFromTable(session, tableName, tableSchema)
+}
+
+export const selectQuery = async (
+  session: Database,
+  query: string
+): Promise<{ [key: string]: string }[]> => {
+  return await session.select(query)
+}
+
+export const executeQuery = async (
+  session: Database,
+  query: string
+): Promise<QueryResult> => {
+  return await session.execute(query)
+}
+
+// TODO: This is a temporary solution. We need to find a way to get the type of the column.
+export const parseQuery = (query: string): Query => {
+  const queryParts = query.split(' ')
+  console.log(queryParts)
+  const queryType = queryParts[0].toLowerCase()
+  console.log(queryType)
+  return {
+    type: queryType === 'select' ? QueryType.SELECT : QueryType.OTHER
+  }
 }
 
 const whereClause = (columnName: string, value: any) => {
