@@ -1,4 +1,5 @@
 import {
+  Cell,
   Column,
   ColumnHeaderCell2,
   EditableCell2,
@@ -71,14 +72,20 @@ const MainTable = () => {
           )}
           cellRenderer={(rowIndex: number, _: number) => {
             return (
-              <EditableCell2
-                value={sqlValueToJsValidValue(
+              // TODO: It's not possible to add a feature to directly update unless the all data types are supported.
+              // <EditableCell2
+              //   value={sqlValueToJsValidValue(
+              //     mainTableState.records[rowIndex][columnName]
+              //   )}
+              //   onConfirm={(newValue) =>
+              //     onConfirmUpdateColumn(columnName, newValue, rowIndex)
+              //   }
+              // />
+              <Cell>
+                {sqlValueToJsValidValue(
                   mainTableState.records[rowIndex][columnName]
                 )}
-                onConfirm={(newValue) =>
-                  onConfirmUpdateColumn(columnName, newValue, rowIndex)
-                }
-              />
+              </Cell>
             )
           }}
         />
