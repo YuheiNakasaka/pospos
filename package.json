@@ -6,7 +6,8 @@
     "dev": "next dev -p 1420",
     "build": "next build && next export -o dist",
     "lint": "next lint",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test:frontend": "jest"
   },
   "dependencies": {
     "@blueprintjs/core": "^4.9.4",
@@ -21,11 +22,15 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.0.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
     "@types/node": "^18.7.11",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "eslint": "^8.23.0",
     "eslint-config-next": "^12.2.5",
+    "jest": "^29.0.3",
+    "jest-environment-jsdom": "^29.0.3",
     "typescript": "^4.7.4"
   }
 }
