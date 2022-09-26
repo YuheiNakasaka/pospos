@@ -21,11 +21,13 @@ const Content = () => {
       >
         {headerNavationState &&
         headerNavationState.currentIndex == HeaderNavigationType.content ? (
-          <MainTable />
+          <>
+            <MainTable />
+            <Footer />
+          </>
         ) : (
           <QueryEditor />
         )}
-        <Footer />
       </main>
     </>
   )

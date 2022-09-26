@@ -39,7 +39,7 @@ export const useQueryTableMutators = () => {
     async (session: Database, rawQuery: string) => {
       const parsedQuery = parseQuery(rawQuery)
       if (parsedQuery.type === QueryType.SELECT) {
-        const records = await selectQuery(session, rawQuery)
+        const records = await selectQuery(session, parsedQuery.content)
         if (records.length > 0) {
           const column_names = Object.keys(records[0])
           setState({
@@ -49,8 +49,8 @@ export const useQueryTableMutators = () => {
             allRecordsCount: records.length
           })
         }
-      } else {
-        await executeQuery(session, rawQuery)
+      } else if (parsedQuery.type === QueryType.OTHER) {
+        await executeQuery(session, parsedQuery.content)
         setState({
           columns: [],
           records: [],

@@ -1,3 +1,4 @@
+import { AST, Parser } from 'node-sql-parser'
 import Database, { QueryResult } from 'tauri-plugin-sql-api'
 import { ConnectionConfig } from '../models/ConnectionConfig'
 import { MainTableRecord } from '../models/MainTable'
@@ -121,14 +122,26 @@ export const executeQuery = async (
   return await session.execute(query)
 }
 
-// TODO: This is a temporary solution. We need to find a way to get the type of the column.
 export const parseQuery = (query: string): Query => {
-  const queryParts = query.split(' ')
-  console.log(queryParts)
-  const queryType = queryParts[0].toLowerCase()
-  console.log(queryType)
-  return {
-    type: queryType === 'select' ? QueryType.SELECT : QueryType.OTHER
+  const parser = new Parser()
+  let ast = parser.astify(query) as AST
+  // If the query is multiple statements with `;`, select the first statement only.
+  if (Array.isArray(ast) && ast.length > 0) {
+    ast = ast[0]
+  }
+  if (!ast?.type) return { type: QueryType.INVALID, content: query }
+
+  switch (ast.type) {
+    case 'select':
+      return {
+        type: QueryType.SELECT,
+        content: parser.sqlify(ast).replace(/`/g, '')
+      }
+    default:
+      return {
+        type: QueryType.OTHER,
+        content: parser.sqlify(ast).replace(/`/g, '')
+      }
   }
 }
 
