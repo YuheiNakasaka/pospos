@@ -1,4 +1,4 @@
-import { Button, Colors, TextArea } from '@blueprintjs/core'
+import { Button, Colors } from '@blueprintjs/core'
 import {
   Cell,
   Column,
@@ -7,7 +7,7 @@ import {
   TableLoadingOption
 } from '@blueprintjs/table'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import { QueryTableStatus } from '../../models/QueryTable'
 import { useConnectionRegistryState } from '../../states/connectionRegistryState'
 import {
@@ -22,18 +22,34 @@ const QueryEditor = () => {
   const queryTableState = useQueryTableState()
   const { addQueryTable } = useQueryTableMutators()
   const [query, setQuery] = useState('')
+  let textareaRef = createRef<HTMLTextAreaElement>()
 
   const onChangeTextArea = (e) => {
     setQuery(e.target.value)
   }
 
   const onClickRunButton = async () => {
+    let textarea = textareaRef.current
+    let queryText = query
+
+    if (
+      textarea &&
+      textarea.value &&
+      textarea.selectionStart != null &&
+      textarea.selectionEnd != null &&
+      textarea.selectionStart !== textarea.selectionEnd
+    ) {
+      queryText = queryText
+        .toString()
+        .substring(textarea.selectionStart, textarea.selectionEnd)
+    }
+
     if (router.query.key) {
       const key = router.query.key as string
       if (connectionRegistryState) {
         const connectionSet = connectionRegistryState[key]
         if (connectionSet && connectionSet.session) {
-          await addQueryTable(connectionSet.session, query)
+          await addQueryTable(connectionSet.session, queryText)
         }
       }
     }
@@ -47,11 +63,11 @@ const QueryEditor = () => {
         height: '100%'
       }}
     >
-      <TextArea
-        large={true}
+      <textarea
+        ref={textareaRef}
         value={query}
         onChange={onChangeTextArea}
-        style={{ height: '150px' }}
+        style={{ minHeight: '150px' }}
       />
       <section
         style={{
